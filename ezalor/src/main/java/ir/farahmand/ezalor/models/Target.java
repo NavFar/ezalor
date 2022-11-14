@@ -14,6 +14,7 @@ public class Target implements Serializable {
 	private static final long serialVersionUID = 1930734022682781487L;
 	private String url;
 	private Type type;
+	private String image;
 	public String getUrl() {
 		return url;
 	}
@@ -26,4 +27,11 @@ public class Target implements Serializable {
 	public void setType(Type type) {
 		this.type = type;
 	}
+	public String getImage() {
+		return image;
+	}
+	public void setImage(String image) {
+		this.image = image;
+	}
+	
 }
