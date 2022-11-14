@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ir.farahmand.ezalor.DAOs.T1RegisterDAO;
 import ir.farahmand.ezalor.models.Target;
+import ir.farahmand.ezalor.models.Target.Type;
 import ir.farahmand.ezalor.services.TargetStoreService;
 
 @RestController
@@ -38,6 +39,7 @@ public class Type1RegisterController {
 		for(String targetURL: input.getTargets()) {
 			Target target = new Target();
 			target.setUrl(targetURL);
+			target.setType(Type.TYPE1);
 			this.targetStoreService.addTarget(uuid, target);
 		}
 		return new ResponseEntity<>(uuid,HttpStatus.OK);
