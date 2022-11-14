@@ -56,13 +56,4 @@ public class HaskellAPIService {
 		return false;
 	}
 
-	private static void printStream(InputStream inputStream) throws IOException {
-		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
-			String line;
-			while ((line = bufferedReader.readLine()) != null) {
-				System.out.println(line);
-			}
-
-		}
-	}
 }
