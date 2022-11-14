@@ -27,7 +27,7 @@ public class Type1RegisterController {
 	}
 
 	@PostMapping
-	public ResponseEntity<String> registerTarget(@Valid @RequestBody T1RegisterDAO input ) throws Exception {
+	public ResponseEntity<String> registerTarget(@Valid @RequestBody T1RegisterDAO input ) {
 		String[] schemes = {"http", "https"};
 		UrlValidator validator = new  UrlValidator(schemes);
 		for(String  targetURL: input.getTargets()) {
