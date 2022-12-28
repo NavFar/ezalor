@@ -22,12 +22,12 @@ import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/t1")
-public class Type1RegisterController {
+public class Type1Controller {
 
 	private TargetStoreService targetStoreService;
 	private URLValidatorService urlValidatorService;
 
-	public Type1RegisterController(TargetStoreService targetStoreService, URLValidatorService urlValidatorService) {
+	public Type1Controller(TargetStoreService targetStoreService, URLValidatorService urlValidatorService) {
 		this.targetStoreService = targetStoreService;
 		this.urlValidatorService = urlValidatorService;
 	}

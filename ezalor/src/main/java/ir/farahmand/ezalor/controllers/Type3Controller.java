@@ -1,6 +1,5 @@
 package ir.farahmand.ezalor.controllers;
 
-
 import java.util.List;
 
 import javax.validation.Valid;
@@ -15,40 +14,58 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ir.farahmand.ezalor.DAOs.T2RegisterDAO;
+import ir.farahmand.ezalor.DAOs.T3RegisterDAO;
 import ir.farahmand.ezalor.models.Target;
 import ir.farahmand.ezalor.models.Target.Type;
+import ir.farahmand.ezalor.services.DockerClientService;
 import ir.farahmand.ezalor.services.FunctionStoreService;
 import ir.farahmand.ezalor.services.HaskellAPIService;
+import ir.farahmand.ezalor.services.ImageStoreService;
 import ir.farahmand.ezalor.services.TargetStoreService;
 import ir.farahmand.ezalor.services.URLValidatorService;
 import reactor.core.publisher.Flux;
 
-@Profile({"t2","t3"})
+@Profile("t3")
 @RestController
-@RequestMapping("/t2/register")
-public class Type2RegisterController {
-	
+@RequestMapping("/t3")
+public class Type3Controller {
 	private HaskellAPIService haskellAPIService;
 	private TargetStoreService targetStoreService;
 	private FunctionStoreService functionStoreService;
+	private DockerClientService dockerClientService;
 	private URLValidatorService urlValidatorService;
-	public Type2RegisterController(TargetStoreService targetStoreService, HaskellAPIService haskellAPIService, FunctionStoreService functionStoreService, URLValidatorService urlValidatorService) {
+	private ImageStoreService imageStoreService;
+
+	public Type3Controller(TargetStoreService targetStoreService,
+			HaskellAPIService haskellAPIService,
+			FunctionStoreService functionStoreService,
+			DockerClientService dockerClientService,
+			URLValidatorService urlValidatorService,
+			ImageStoreService imageStoreService) {
 		this.targetStoreService = targetStoreService;
 		this.haskellAPIService = haskellAPIService;
 		this.functionStoreService = functionStoreService;
+		this.dockerClientService = dockerClientService;
 		this.urlValidatorService = urlValidatorService;
+		this.imageStoreService = imageStoreService;
 	}
-	@PostMapping
-	public ResponseEntity<String> registerTarget(@Valid @RequestBody T2RegisterDAO input ) {
+	@PostMapping("/register")
+	public ResponseEntity<String> registerTarget(@Valid @RequestBody T3RegisterDAO input ) {
 		if(!this.urlValidatorService.areTargetsValid(input.getTargets()))
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		
-		if(!this.haskellAPIService.checkFunction(input.getFunction()))
+		if(input.getFunction() !=null && !this.haskellAPIService.checkFunction(input.getFunction()))
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		
-		String uuid = this.targetStoreService.createTargets(Type.TYPE2, input.getTargets());
+		
+		if(this.dockerClientService.getDockerClient().listImagesCmd().withImageNameFilter(input.getImage()).exec().size()==0 &&
+				this.dockerClientService.getDockerClient().searchImagesCmd(input.getImage()).exec().size()==0) 
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		
+		String uuid = this.targetStoreService.createTargets(Type.TYPE3, input.getTargets());
 		this.functionStoreService.addFunction(uuid, input.getFunction());
+		this.imageStoreService.addImage(uuid, input.getImage());
+		
 		return new ResponseEntity<>(uuid,HttpStatus.OK);
 	}
 	
@@ -66,7 +83,9 @@ public class Type2RegisterController {
 			if(i < responses.size() -1 )
 				response += ",";
 		}
+		response += " ,container:\"" + this.dockerClientService.runDocker(this.imageStoreService.getImage(id), response).getMessage() +" \"";
 		response += " ]";
+		
 		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 }
