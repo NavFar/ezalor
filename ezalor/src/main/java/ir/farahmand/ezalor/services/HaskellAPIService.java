@@ -55,5 +55,46 @@ public class HaskellAPIService {
 
 		return false;
 	}
+	
+	public String runFunction(String function, String  input) {
+		if(function==null || function.isEmpty())
+			return input;
+		String output = "";
+		ProcessBuilder processBuilder = new ProcessBuilder();
+		processBuilder.directory(new File("/tmp"));
+		processBuilder.command("ghci");
+		try {
+			Process process = processBuilder.start();
+			OutputStream inputStream = process.getOutputStream();
+			InputStream outputStream = process.getInputStream();
+			InputStream errorStream = process.getErrorStream();
+			inputStream.write(function.getBytes(Charset.forName("UTF-8")));
+			inputStream.write("\n".getBytes(Charset.forName("UTF-8")));
+			inputStream.write(("convert \""+input+"\"").getBytes(Charset.forName("UTF-8")));
+			inputStream.flush();
+			inputStream.close();
+			boolean isFinished = process.waitFor(10, TimeUnit.SECONDS);
+			String response = "";
+			try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(outputStream))) {
+				String line;
+				while ((line = bufferedReader.readLine()) != null) {
+					response += line;
+				}
+			} catch (IOException e) {
+				System.err.println("Can't get GHCI result");
+			}
+			if (errorStream.available() != 0)
+				return output;
+			if (!isFinished) {
+				process.destroyForcibly();
+			}
+			return response;
+		} catch (IOException e) {
+			System.err.println("Can't run GHCI");
+		} catch (InterruptedException e) {
+			System.err.println("Can't Stop GHCI");
+		}
+		return output;
+	}
 
 }
